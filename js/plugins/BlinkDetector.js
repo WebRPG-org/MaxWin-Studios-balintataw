@@ -72,6 +72,76 @@
   var reconnecting = false;
   var reconnectBaseDelay = 2000;
   var reconnectTimer = null;
+  // New preview mirrors (do NOT move the original source)
+  var previewVideoEl = null; // mirrors MediaStream video
+  var previewImgEl = null; // mirrors MJPEG/ESP32 img
+
+  function ensurePreviewBox() {
+    if (!previewBox) createPreviewBox();
+    return previewBox;
+  }
+
+  function attachPreviewFromFeed(feed) {
+    var box = ensurePreviewBox();
+    var isVideo = !!(feed && typeof feed.play === 'function');
+
+    // Clear box once
+    if (box) {
+      box.innerHTML = '';
+    }
+
+    if (isVideo) {
+      // Create a new <video> that uses the SAME stream
+      if (!previewVideoEl) {
+        previewVideoEl = document.createElement('video');
+        previewVideoEl.setAttribute('playsinline', '');
+        previewVideoEl.setAttribute('autoplay', '');
+        previewVideoEl.muted = true;
+        // Fill container
+        previewVideoEl.style.width = '100%';
+        previewVideoEl.style.height = '100%';
+        previewVideoEl.style.objectFit = 'cover';
+        previewVideoEl.style.display = 'block';
+      }
+      try {
+        // If source has a MediaStream, mirror it
+        if (feed.srcObject) {
+          previewVideoEl.srcObject = feed.srcObject;
+        } else if (feed.captureStream) {
+          previewVideoEl.srcObject = feed.captureStream();
+        } else if (feed.mozCaptureStream) {
+          previewVideoEl.srcObject = feed.mozCaptureStream();
+        } else if (feed.src) {
+          // Fallback (rare)
+          previewVideoEl.src = feed.src;
+        }
+      } catch (e) {}
+      try {
+        previewVideoEl.play();
+      } catch (e) {}
+      box.appendChild(previewVideoEl);
+    } else {
+      // Image source (ESP32/MJPEG)
+      if (!previewImgEl) {
+        previewImgEl = document.createElement('img');
+        previewImgEl.style.width = '100%';
+        previewImgEl.style.height = '100%';
+        previewImgEl.style.objectFit = 'cover';
+        previewImgEl.style.display = 'block';
+      }
+      // Just point it at the same URL as the live img element
+      // If we own `img`, we can reuse it directly (safer to mirror):
+      if (img && img.src) previewImgEl.src = img.src;
+      box.appendChild(previewImgEl);
+    }
+  }
+
+  function syncPreview() {
+    if (!previewVisible) return;
+    var feed = video || img;
+    if (!feed) return;
+    attachPreviewFromFeed(feed);
+  }
 
   // EAR calculation helper
   function dist(a, b) {
@@ -173,10 +243,8 @@
     previewVisible = !previewVisible;
     if (!previewBox) createPreviewBox();
     previewBox.style.display = previewVisible ? 'block' : 'none';
-    var feed = video || img;
-    if (previewVisible && feed && !previewBox.contains(feed)) {
-      previewBox.innerHTML = '';
-      previewBox.appendChild(feed);
+    if (previewVisible) {
+      syncPreview(); // ensure we mirror current feed correctly
     }
   }
 
@@ -297,7 +365,7 @@
     }
   }
 
-  function startESP32Feed() {
+  function startESP32Feed(url) {
     return new Promise(function (resolve, reject) {
       cleanupMedia();
       img = document.createElement('img');
@@ -308,15 +376,15 @@
       document.body.appendChild(img);
 
       img.onerror = function () {
-        updateHUD('⚠️ ESP32 error', 'orange');
-        scheduleReconnect();
+        updateHUD('⚠️ Feed error', 'orange');
+        if (useESP32) scheduleReconnect();
       };
 
-      loadImageOnce(img, esp32IP, 4000)
+      loadImageOnce(img, url, 4000)
         .then(function () {
           espReloadInterval = setInterval(function () {
             try {
-              img.src = appendCacheBuster(esp32IP);
+              img.src = appendCacheBuster(url);
             } catch (e) {}
           }, 450);
           resolve();
@@ -327,9 +395,11 @@
 
   async function initCamera() {
     cleanupMedia();
+
+    // 1) ESP32-CAM path (unchanged)
     if (useESP32) {
       try {
-        await startESP32Feed();
+        await startESP32Feed(esp32IP);
         await waitForNonZeroSize(img, 'image', 5000);
         updateHUD('🟢 ESP32 Connected', 'lime');
         clearReconnectState();
@@ -341,18 +411,77 @@
       }
     }
 
-    video = document.createElement('video');
-    video.autoplay = true;
-    video.style.width = '100%';
-    video.style.height = '100%';
-    document.body.appendChild(video);
+    // 2) Preferred: use the in-game webcam plugin (no server, no Python)
     try {
-      var stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
-      await waitForNonZeroSize(video, 'video', 5000);
-      updateHUD('🟢 Webcam Active', 'lime');
+      if (
+        window.WebcamInGame &&
+        typeof window.WebcamInGame.start === 'function'
+      ) {
+        await window.WebcamInGame.start();
+        var feedEl = window.WebcamInGame.getFeedEl();
+        if (feedEl) {
+          // Use as our video source
+          video = feedEl;
+          // Ensure preview box shows the element
+          createPreviewBox();
+          if (previewVisible) {
+            previewBox.innerHTML = '';
+            previewBox.appendChild(video);
+          }
+          // Wait for a real frame
+          await waitForNonZeroSize(video, 'video', 5000);
+          updateHUD('🟢 In-game Webcam Connected', 'lime');
+          return;
+        }
+      }
+    } catch (e0) {
+      // continue to next fallback
+    }
+
+    // 3) Fallback: direct getUserMedia (still no server)
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('autoplay', '');
+        video.muted = true;
+        document.body.appendChild(video);
+
+        var stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        try {
+          video.srcObject = stream;
+        } catch (e1) {
+          video.src = window.URL.createObjectURL(stream);
+        }
+        video.play();
+
+        // Ensure preview shows the element if toggled
+        createPreviewBox();
+        if (previewVisible) {
+          previewBox.innerHTML = '';
+          previewBox.appendChild(video);
+        }
+
+        await waitForNonZeroSize(video, 'video', 5000);
+        updateHUD('🟢 Local Camera (getUserMedia) Connected', 'lime');
+        return;
+      }
+    } catch (e2) {
+      // continue to next fallback
+    }
+
+    // 4) Legacy: HTTP MJPEG (your old Flask /webcam_server.py behavior)
+    var localWebcamURL = 'http://localhost:8080/video';
+    try {
+      await startESP32Feed(localWebcamURL);
+      await waitForNonZeroSize(img, 'image', 5000);
+      updateHUD('🟢 Local Webcam (HTTP MJPEG) Connected', 'lime');
+      return;
     } catch (err) {
-      updateHUD('🔴 Webcam Failed', 'red');
+      updateHUD('🔴 Local Webcam Failed', 'red');
       throw err;
     }
   }
@@ -364,7 +493,10 @@
     var model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
     detector = await faceLandmarksDetection.createDetector(model, {
       runtime: 'tfjs',
+      modelUrl:
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection/dist/face_mesh/model.json',
     });
+
     updateHUD('🟢 Detection Ready', 'lime');
   }
 
