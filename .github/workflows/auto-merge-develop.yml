@@ -1,4 +1,4 @@
-name: Auto PR: Develop → Sub-branches
+name: Merge develop to sub branches
 
 on:
   push:
