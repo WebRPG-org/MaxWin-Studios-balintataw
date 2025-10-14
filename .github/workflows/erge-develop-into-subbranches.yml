@@ -1,0 +1,150 @@
+name: Merge develop into sub-branches
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: autoupdate-develop
+  cancel-in-progress: true
+
+jobs:
+  open-prs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set Git identity (bot)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Auth GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth setup-git
+          gh auth status
+
+      - name: Fetch all branches
+        run: git fetch --all --prune
+
+      - name: Collect target branches
+        id: targets
+        shell: bash
+        run: |
+          # List remote branches (short), strip origin/
+          ALL=$(git branch -r --format='%(refname:short)' | sed 's|^origin/||')
+
+          # Keep only: feature/*, fix/*, content-(art|audio|narrative|qa)/*
+          # Exclude: main, develop, staging, release/*
+          TARGETS=$(echo "$ALL" \
+            | grep -E '^(feature/|fix/|content-(art|audio|narrative|qa)/)' \
+            | grep -Ev '^(main|develop|staging)$' \
+            | grep -Ev '^release/')
+
+          echo "Targets:"
+          echo "$TARGETS" | sed 's/^/ - /'
+
+          # Export as multi-line output for next step
+          {
+            echo "list<<EOF"
+            echo "$TARGETS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create/Update PRs from develop
+        if: steps.targets.outputs.list != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -e
+
+          echo "## Auto-merge status (develop → sub-branches)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Branch | Result | Notes |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------:|:-------|:------|" >> "$GITHUB_STEP_SUMMARY"
+
+          # Ensure latest develop
+          git checkout develop
+          git reset --hard origin/develop
+
+          while IFS= read -r branch; do
+            [ -z "$branch" ] && continue
+
+            # Safety skip
+            if [[ "$branch" == "develop" || "$branch" == "main" || "$branch" == "staging" || "$branch" =~ ^release/ ]]; then
+              continue
+            fi
+
+            safe_branch="${branch//\//-}"
+            update_branch="auto/develop-into-${safe_branch}"
+
+            echo "🔧 Preparing PR: develop → $branch"
+
+            # Start from target tip
+            git checkout -B "$update_branch" "origin/$branch"
+
+            # Try to merge develop
+            if ! git merge --no-edit origin/develop; then
+              echo "⚠️ Merge conflict for $branch"
+              git merge --abort || true
+
+              # Push a helper branch so a PR can be opened (shows conflict to resolve)
+              git push -u origin "$update_branch" || true
+
+              # Reuse open PR if present
+              open_num=$(gh pr list --state open --head "$update_branch" --base "$branch" --json number --jq '.[0].number' || true)
+              if [ -z "$open_num" ]; then
+                gh pr create \
+                  --head "$update_branch" \
+                  --base "$branch" \
+                  --title "chore: (manual) merge develop into ${branch}" \
+                  --body "Automated attempt to merge **develop** into **${branch}** resulted in conflicts. Please resolve manually."
+                open_num=$(gh pr list --state open --head "$update_branch" --base "$branch" --json number --jq '.[0].number' || true)
+              fi
+
+              echo "| $branch | ⚠️ Conflict | ${open_num:+#}$open_num |" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            # If nothing changed, skip PR creation
+            if git diff --quiet "origin/$branch"...HEAD; then
+              echo "✅ $branch already up to date"
+              echo "| $branch | ✅ Up-to-date | No PR needed |" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            # Push update branch
+            git push -u origin "$update_branch"
+
+            # Create or reuse PR
+            open_num=$(gh pr list --state open --head "$update_branch" --base "$branch" --json number --jq '.[0].number' || true)
+            if [ -n "$open_num" ]; then
+              echo "| $branch | 🔁 PR open | #$open_num |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              pr_url=$(gh pr create \
+                        --head "$update_branch" \
+                        --base "$branch" \
+                        --title "chore: merge develop into ${branch}" \
+                        --body "Automated PR to bring **develop** into **${branch}**.")
+              # Convert URL to PR number for the summary
+              open_num=$(gh pr view "$pr_url" --json number --jq '.number' || true)
+              if [ -n "$open_num" ]; then
+                echo "| $branch | 📬 PR opened | #$open_num |" >> "$GITHUB_STEP_SUMMARY"
+              else
+                echo "| $branch | 📬 PR opened | $pr_url |" >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+          done <<< "${{ steps.targets.outputs.list }}"
