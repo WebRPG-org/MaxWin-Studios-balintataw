@@ -3,5 +3,6 @@ null,
 {"id":1,"expanded":true,"name":"MAP001-Blink Detection Test","order":1,"parentId":0,"scrollX":832,"scrollY":640},
 {"id":2,"expanded":false,"name":"bahay na bato","order":2,"parentId":1,"scrollX":832,"scrollY":640},
 {"id":3,"expanded":true,"name":"SideScroller Test 1","order":3,"parentId":0,"scrollX":817,"scrollY":463},
-{"id":4,"expanded":true,"name":"MAP2_EmptyRoom","order":4,"parentId":3,"scrollX":832,"scrollY":624}
+{"id":4,"expanded":true,"name":"MAP2_EmptyRoom","order":4,"parentId":3,"scrollX":817,"scrollY":463},
+{"id":5,"expanded":true,"name":"MAP3_Beatemup Sidescroller","order":5,"parentId":3,"scrollX":832,"scrollY":463}
 ]
