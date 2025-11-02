@@ -1,0 +1,89 @@
+<block:60,0,10,10,100,center,Background 2>
+
+</block>
+
+<block:-1,0,20,20,274,center,Background 2>
+Created by
+\C[1]Cael O'Sullivan
+</block>
+
+<block:-1,0,20,20,274,center>
+Soundtrack composed by
+\C[1]Luc Wilkinson
+</block>
+
+<block:-1,0,20,20,256,center>
+Technical support by
+\C[1]Elliot Hughes
+\C[1]Martin Tasker
+</block>
+
+<block:-1,0,20,20,274,center>
+Published by
+\C[1]Hidden Track
+</block>
+
+<block:-1,0,20,20,274,center>
+Additional SFX from
+\C[1]www.zapsplat.com
+</block>
+
+<block:-1,0,20,20,274,center>
+Made with
+\C[1]RPG Maker MV
+</block>
+
+<block:-1,0,20,20,150,center>
+Additional scripting by
+\C[1]Arisu's Dollhouse
+\C[1]Galv
+\C[1]Khas
+\C[1]Masked
+\C[1]Martin Tasker
+\C[1]ocean pollen
+\C[1]Victor Sant
+\C[1]Yanfly
+</block>
+
+<block:-1,0,20,20,154,center>
+Game testing by
+\C[1]Maia Baniel
+\C[1]Tosca Bell
+\C[1]Anoushka Bonwick
+\C[1]Joe Brownbridge
+\C[1]Elliot Hughes
+\C[1]Ellie Page
+\C[1]Martin Tasker
+\C[1]Thomas Wingfield
+</block>
+
+<block:-1,0,20,20,130,center>
+Special Thanks
+\C[1]Maia Baniel
+\C[1]Tosca Bell
+\C[1]Ed Hollis
+\C[1]Elliot Hughes
+\C[1]Eileen O'Sullivan
+\C[1]KikyoPhoenix
+\C[1]Martin Tasker
+\C[1]Vanessa Thorp-Downes
+\C[1]The RPG Maker community
+</block>
+
+<block:-1,0,20,20,232,center>
+Very Special Thanks
+\C[1]You!
+
+Thank you so much for playing,
+I never thought I would make it this far.
+</block>
+
+<block:720,0,20,120,258,center>
+And to anyone who needs to hear this...
+\C[1]Good luck out there.
+\C[1]Try not to be too hard on yourself.
+</block>
+
+<block:60,0,10,10,100,center,Background 2>
+
+</block>
