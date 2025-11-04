@@ -1,9 +1,14 @@
 [
 null,
-null,
+{"id":1,"expanded":true,"name":"lighthouse exterior (ACT1)","order":6,"parentId":0,"scrollX":2336,"scrollY":463},
 {"id":2,"expanded":true,"name":"lIGHTHOUSE (INT) - act 1","order":3,"parentId":3,"scrollX":832,"scrollY":463},
 {"id":3,"expanded":true,"name":"BRIDGE - prologue","order":1,"parentId":0,"scrollX":817,"scrollY":463},
-{"id":4,"expanded":true,"name":"lIGHTHOUSE (EXT) - act 1","order":2,"parentId":3,"scrollX":2527,"scrollY":463},
-{"id":5,"expanded":true,"name":"PROLOGUE - BRIDGE","order":4,"parentId":3,"scrollX":832,"scrollY":624},
-{"id":6,"expanded":true,"name":"START OF GAME","order":5,"parentId":5,"scrollX":817,"scrollY":471}
+{"id":4,"expanded":true,"name":"lIGHTHOUSE (EXT) - act 1","order":2,"parentId":3,"scrollX":817,"scrollY":463},
+{"id":5,"expanded":true,"name":"PROLOGUE - BRIDGE","order":4,"parentId":3,"scrollX":1180,"scrollY":624},
+{"id":6,"expanded":true,"name":"START OF GAME","order":5,"parentId":0,"scrollX":817,"scrollY":471},
+{"id":7,"expanded":true,"name":"lighthouse INTERIOR(1) (ACT1)","order":7,"parentId":1,"scrollX":832,"scrollY":463},
+{"id":8,"expanded":true,"name":"lighthouse Interior(2) (ACT1)","order":8,"parentId":1,"scrollX":2336,"scrollY":463},
+{"id":9,"expanded":true,"name":"Door game (ACT1)","order":9,"parentId":1,"scrollX":844,"scrollY":624},
+{"id":10,"expanded":true,"name":"Journal pop-up (ACT2)","order":11,"parentId":0,"scrollX":817,"scrollY":463},
+{"id":11,"expanded":true,"name":"duwende chas","order":10,"parentId":1,"scrollX":844,"scrollY":463}
 ]
