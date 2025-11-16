@@ -1,11 +1,11 @@
 [
 null,
-{"id":1,"expanded":false,"name":"CHURCH (ACT 3)","order":5,"parentId":0,"scrollX":817,"scrollY":463},
+{"id":1,"expanded":false,"name":"CHURCH (ACT 3)","order":5,"parentId":0,"scrollX":832,"scrollY":624},
 {"id":2,"expanded":false,"name":"SHRINE OF FOUR KINGS (ACT 4)","order":6,"parentId":0,"scrollX":3023,"scrollY":463},
-{"id":3,"expanded":true,"name":"BRIDGE (PROLOGUE)","order":1,"parentId":0,"scrollX":3008,"scrollY":463},
+{"id":3,"expanded":true,"name":"BRIDGE (PROLOGUE)","order":1,"parentId":0,"scrollX":2206,"scrollY":926},
 null,
-{"id":5,"expanded":true,"name":"LIGHTHOUSE EXTERIOR (ACT1)","order":2,"parentId":0,"scrollX":3983,"scrollY":463},
+{"id":5,"expanded":true,"name":"LIGHTHOUSE EXTERIOR (ACT1)","order":2,"parentId":0,"scrollX":1634,"scrollY":926},
 {"id":6,"expanded":true,"name":"START OF GAME","order":7,"parentId":0,"scrollX":817,"scrollY":471},
-{"id":7,"expanded":true,"name":"lighthouse INTERIOR(1) (ACT1)","order":3,"parentId":5,"scrollX":817,"scrollY":471},
-{"id":8,"expanded":true,"name":"lighthouse Interior(2) (ACT1)","order":4,"parentId":5,"scrollX":817,"scrollY":471}
+{"id":7,"expanded":true,"name":"lighthouse INTERIOR(1) (ACT1)","order":3,"parentId":5,"scrollX":1634,"scrollY":942},
+{"id":8,"expanded":true,"name":"lighthouse Interior(2) (ACT1)","order":4,"parentId":5,"scrollX":1634,"scrollY":942}
 ]
