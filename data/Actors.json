@@ -1,4 +1,5 @@
 [
 null,
-{"id":1,"battlerName":"","characterIndex":0,"characterName":"!Sprite2","classId":1,"equips":[],"faceIndex":0,"faceName":"Julain_Final_Face","traits":[],"initialLevel":1,"maxLevel":69,"name":"Julian","nickname":"Julian","note":"","profile":"Haggard but youthful, dark under-eyes from sleepless curiosity"}
+{"id":1,"battlerName":"","characterIndex":0,"characterName":"!JulianSpriteNoLantern","classId":1,"equips":[],"faceIndex":0,"faceName":"Julain_Final_Face","traits":[],"initialLevel":1,"maxLevel":69,"name":"Julian","nickname":"Julian","note":"","profile":"Haggard but youthful, dark under-eyes from sleepless curiosity"},
+{"id":2,"battlerName":"","characterIndex":0,"characterName":"","classId":1,"equips":[0,0,0,0,0],"faceIndex":0,"faceName":"","traits":[],"initialLevel":1,"maxLevel":99,"name":"Duwende","nickname":"","note":"","profile":""}
 ]
