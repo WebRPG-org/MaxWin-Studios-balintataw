@@ -1,6 +1,6 @@
 /*:
  * @plugindesc (MV) Scales Message & Choice windows for 1080p; compatible with YEP_MessageCore. (ES5)
- * @author You
+ * @author John Paul Fusin
  *
  * @help
  * Place BELOW Community_Basic and YEP_MessageCore.
@@ -88,56 +88,62 @@
  * @default true
  */
 
-(function() {
+(function () {
   var N = 'MessageResize_YEP';
   var P = PluginManager.parameters(N);
 
-  function b(x, d){ return String(P[x] || d).toLowerCase() === 'true'; }
-  function n(x, d){ var v = Number(P[x]); return isNaN(v) ? d : v; }
+  function b(x, d) {
+    return String(P[x] || d).toLowerCase() === 'true';
+  }
+  function n(x, d) {
+    var v = Number(P[x]);
+    return isNaN(v) ? d : v;
+  }
 
-  var overrideWR   = b('Override Width/Rows', true);
-  var widthOffset  = n('Message Width Offset', 120);
-  var messageRows  = n('Message Rows', 6);
+  var overrideWR = b('Override Width/Rows', true);
+  var widthOffset = n('Message Width Offset', 120);
+  var messageRows = n('Message Rows', 6);
   var baseFontSize = n('Message Font Size', 36);
-  var lineHeight   = n('Line Height', 0);
-  var padding      = n('Window Padding', 18);
-  var centerMsg    = b('Center Message', true);
-  var choiceMax    = n('Choice Max Width', 900);
-  var choiceRows   = n('Choice Rows', 8);
-  var syncChoice   = b('Sync Choice Font', true);
+  var lineHeight = n('Line Height', 0);
+  var padding = n('Window Padding', 18);
+  var centerMsg = b('Center Message', true);
+  var choiceMax = n('Choice Max Width', 900);
+  var choiceRows = n('Choice Rows', 8);
+  var syncChoice = b('Sync Choice Font', true);
 
   // ---- Global window feel (font size, padding, line height) ----
   var _Window_Base_standardFontSize = Window_Base.prototype.standardFontSize;
-  Window_Base.prototype.standardFontSize = function() {
+  Window_Base.prototype.standardFontSize = function () {
     return baseFontSize;
   };
 
   var _Window_Base_standardPadding = Window_Base.prototype.standardPadding;
-  Window_Base.prototype.standardPadding = function() {
+  Window_Base.prototype.standardPadding = function () {
     return padding;
   };
 
   var _Window_Base_lineHeight = Window_Base.prototype.lineHeight;
-  Window_Base.prototype.lineHeight = function() {
+  Window_Base.prototype.lineHeight = function () {
     // If user set 0, auto = font + 4
-    return lineHeight > 0 ? lineHeight : (this.standardFontSize() + 4);
+    return lineHeight > 0 ? lineHeight : this.standardFontSize() + 4;
   };
 
   // ---- Message window sizing (post-YEP override) ----
   // Only override width/rows when the toggle is ON.
   if (overrideWR) {
-    Window_Message.prototype.windowWidth = function() {
+    Window_Message.prototype.windowWidth = function () {
       return Math.max(240, Graphics.boxWidth - widthOffset);
     };
 
-    Window_Message.prototype.numVisibleRows = function() {
+    Window_Message.prototype.numVisibleRows = function () {
       return messageRows;
     };
   }
 
   // Keep the message window centered at the bottom if desired.
-  var _Window_Message_updatePlacement = Window_Message.prototype.updatePlacement;
-  Window_Message.prototype.updatePlacement = function() {
+  var _Window_Message_updatePlacement =
+    Window_Message.prototype.updatePlacement;
+  Window_Message.prototype.updatePlacement = function () {
     _Window_Message_updatePlacement.call(this);
     if (overrideWR) this.width = this.windowWidth();
     if (centerMsg) this.x = Math.floor((Graphics.boxWidth - this.width) / 2);
@@ -145,19 +151,20 @@
 
   // ---- Choice window polish ----
   // Wider choices to fit larger fonts; cap to screen minus offset.
-  Window_ChoiceList.prototype.maxChoiceWidth = function() {
+  Window_ChoiceList.prototype.maxChoiceWidth = function () {
     var cap = Math.max(240, Graphics.boxWidth - widthOffset);
     return Math.min(cap, choiceMax);
   };
 
   // More visible rows for 1080p
-  Window_ChoiceList.prototype.numVisibleRows = function() {
+  Window_ChoiceList.prototype.numVisibleRows = function () {
     return choiceRows;
   };
 
   // Sync choice fonts/line height with message for visual consistency
-  var _Window_ChoiceList_resetFontSettings = Window_ChoiceList.prototype.resetFontSettings;
-  Window_ChoiceList.prototype.resetFontSettings = function() {
+  var _Window_ChoiceList_resetFontSettings =
+    Window_ChoiceList.prototype.resetFontSettings;
+  Window_ChoiceList.prototype.resetFontSettings = function () {
     _Window_ChoiceList_resetFontSettings.call(this);
     if (syncChoice) {
       this.contents.fontSize = baseFontSize;
@@ -166,15 +173,14 @@
 
   // ---- Input windows (number/name) feel tiny at 1080p—bump fonts ----
   var _Window_NumberInput_start = Window_NumberInput.prototype.start;
-  Window_NumberInput.prototype.start = function() {
+  Window_NumberInput.prototype.start = function () {
     _Window_NumberInput_start.call(this);
     this.resetFontSettings();
   };
 
   var _Window_NameInput_start = Window_NameInput.prototype.start;
-  Window_NameInput.prototype.start = function() {
+  Window_NameInput.prototype.start = function () {
     _Window_NameInput_start.call(this);
     this.resetFontSettings();
   };
-
 })();
